@@ -9,7 +9,7 @@ The *Data* folder contains monitoring data, monthly aggregated data for modellin
 ### Description
 
 - *Scotland air pollution monitor locations.csv* contains geographic information and type of the monitoring sites.
-- *Monitoring Data.csv* is the raw data of daily measurements of NO$_2$, PM$_{2.5}$ and PM$_{10}$.
+- *Monitoring Data.csv* is the raw data of daily measurements of NO$`_2`$, PM$`_{2.5}`$ and PM$`_{10}`$.
 - *Data - NO2.csv* , *Data - PM10.csv*, *Data - PM25.csv* contain monthly aggregated measured concentrations and corresponding predictors, which are used for modelling.
 - *model comparison.RData* contains model performance metrics and cross-validation results of models compared.
 - *Prediction Results.csv* is the prediction output dataset, covering predicted monthly concentrations across Scotland from 2016 to 2020.
