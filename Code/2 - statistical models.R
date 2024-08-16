@@ -41,7 +41,7 @@ rmse <- function(y, yhat) sqrt(mean((y - yhat)^2, na.rm = TRUE))
 mae <- function(y, yhat) median(abs(y - yhat), na.rm = TRUE)
 
 ## Bias
-bias <- function(y, yhat) mean(yhat - y)
+bias <- function(y, yhat) mean(yhat - y, na.rm = TRUE)
 
 ## Coverage probability
 coverage <- function(y, lwr, upr) mean(y >= lwr & y <= upr)
@@ -99,34 +99,40 @@ lm_avg <- function(f, data) {
 
 lm_cs_no2 <- lm_avg(
   logNO2 ~ Type + UR + Year + as.factor(Month) + log(NO2_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_no2 %>% filter(!is.na(logNO2))
 )
 lm_vs_no2 <- lm_avg(
   logNO2 ~ Type + UR + Year_Month + log(NO2_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_no2 %>% filter(!is.na(logNO2))
 )
 
 lm_cs_pm10 <- lm_avg(
   logPM10 ~ Type + UR + Year + as.factor(Month) +log(PM10_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_pm10 %>% filter(!is.na(logPM10))
 )
 lm_vs_pm10 <- lm_avg(
   logPM10 ~ Type + UR + Year_Month + log(PM10_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_pm10 %>% filter(!is.na(logPM10))
 )
 
 lm_cs_pm25 <- lm_avg(
   logPM25 ~ Type + UR + Year + as.factor(Month) + log(PM25_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_pm25 %>% filter(!is.na(logPM25))
 )
 lm_vs_pm25 <- lm_avg(
   logPM25 ~ Type + UR + Year_Month + log(PM25_modelled) +
-    Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+    Hurs + Psl + SfcWind + Sun + Tas + Rainfall + NDVI +
+    PopDen + log(nearest_road_distance),
   data = data_pm25 %>% filter(!is.na(logPM25))
 )
 
@@ -201,45 +207,51 @@ am_avg <- function(f, data, knots = NULL, func = "gam") {
 am_no2 <- am_avg(
   logNO2 ~ Type + UR +
     s(log(NO2_modelled), bs = "ps", m = 1) +
-    s(Rainfall, bs = "ps", m = 1) +
+    s(Hurs, bs = "ps", m = 1) +
     s(Psl, bs = "ps", m = 1) +
     s(SfcWind, bs = "ps", m = 1) +
     s(Sun, bs = "ps", m = 1) +
-    s(Hurs, bs = "ps", m = 1) +
     s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_no2 %>% filter(!is.na(logNO2)),
-  knots = list(Month = seq(0, 12, length = 13), Temp_Trend = 1:60)
+  knots = list(Month = seq(0, 12, length = 13), Temp_Trend = 1:60),
 )
 
 am_pm10 <- am_avg(
   logPM10 ~ Type + UR +
     s(log(PM10_modelled), bs = "ps", m = 1) +
-    s(Rainfall, bs = "ps", m = 1) +
-    s(Psl, bs = "ps", m = 1) +
-    s(Tas, bs = "ps", m = 1) +
-    s(SfcWind, bs = "ps", m = 1) +
     s(Hurs, bs = "ps", m = 1) +
+    s(Psl, bs = "ps", m = 1) +
+    s(SfcWind, bs = "ps", m = 1) +
     s(Sun, bs = "ps", m = 1) +
+    s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_pm10 %>% filter(!is.na(logPM10)),
-  knots = list(Month = seq(0, 12, length = 13), Temp_Tend = 1:60)
+  knots = list(Month = seq(0, 12, length = 13), Temp_Tend = 1:60),
 )
 
 am_pm25 <- am_avg(
   logPM25 ~ Type + UR +
     s(log(PM25_modelled), bs = "ps", m = 1) +
-    s(Rainfall, bs = "ps", m = 1) +
-    s(SfcWind, bs = "ps", m = 1) +
     s(Hurs, bs = "ps", m = 1) +
-    s(Sun, bs = "ps", m = 1) +
     s(Psl, bs = "ps", m = 1) +
+    s(SfcWind, bs = "ps", m = 1) +
+    s(Sun, bs = "ps", m = 1) +
     s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_pm25 %>% filter(!is.na(logPM25)),
@@ -257,13 +269,15 @@ am_sp_no2 <- am_avg(
   logNO2 ~ Type + UR +
     s(log(NO2_modelled), bs = "ps", m = 1) +
     s(Longitude, Latitude) +
-    s(Rainfall, bs = "ps", m = 1) +
+    s(Hurs, bs = "ps", m = 1) +
     s(Psl, bs = "ps", m = 1) +
     s(SfcWind, bs = "ps", m = 1) +
     s(Sun, bs = "ps", m = 1) +
-    s(Hurs, bs = "ps", m = 1) +
     s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_no2 %>% filter(!is.na(logNO2)),
@@ -274,13 +288,15 @@ am_sp_pm10 <- am_avg(
   logPM10 ~ Type + UR +
     s(log(PM10_modelled), bs = "ps", m = 1) +
     s(Longitude, Latitude) +
-    s(Rainfall, bs = "ps", m = 1) +
-    s(Psl, bs = "ps", m = 1) +
-    s(Tas, bs = "ps", m = 1) +
-    s(SfcWind, bs = "ps", m = 1) +
     s(Hurs, bs = "ps", m = 1) +
+    s(Psl, bs = "ps", m = 1) +
+    s(SfcWind, bs = "ps", m = 1) +
     s(Sun, bs = "ps", m = 1) +
+    s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_pm10 %>% filter(!is.na(logPM10)),
@@ -291,13 +307,15 @@ am_sp_pm25 <- am_avg(
   logPM25 ~ Type + UR +
     s(log(PM25_modelled), bs = "ps", m = 1) +
     s(Longitude, Latitude) +
-    s(Rainfall, bs = "ps", m = 1) +
-    s(SfcWind, bs = "ps", m = 1) +
     s(Hurs, bs = "ps", m = 1) +
-    s(Sun, bs = "ps", m = 1) +
     s(Psl, bs = "ps", m = 1) +
+    s(SfcWind, bs = "ps", m = 1) +
+    s(Sun, bs = "ps", m = 1) +
     s(Tas, bs = "ps", m = 1) +
+    s(Rainfall, bs = "ps", m = 1) +
     s(NDVI, bs = "ps", m = 1) +
+    s(PopDen, bs = "ps", m = 1) +
+    s(log(nearest_road_distance), bs = "ps", m = 1) +
     s(Temp_Trend, bs = "gp", m = 1, k = 60) +
     s(Month, bs = "cc", k = 13),
   data = data_pm25 %>% filter(!is.na(logPM25)),
@@ -369,13 +387,15 @@ amlss_avg <- function(f, data, knots = NULL, method = "REML") {
 amlss_no2 <- amlss_avg(
   list(logNO2 ~ Type + UR +
          s(log(NO2_modelled), bs = "ps", m = 1) +
-         s(Rainfall, bs = "ps", m = 1) +
-         s(SfcWind, bs = "ps", m = 1) +
          s(Hurs, bs = "ps", m = 1) +
-         s(Sun, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
+         s(SfcWind, bs = "ps", m = 1) +
+         s(Sun, bs = "ps", m = 1) +
          s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(NO2_NA_no, bs = "ps", m = 1)),
@@ -386,13 +406,15 @@ amlss_no2 <- amlss_avg(
 amlss_pm10 <- amlss_avg(
   list(logPM10 ~ Type + UR +
          s(log(PM10_modelled), bs = "ps", m = 1) +
-         s(Rainfall, bs = "ps", m = 1) +
+         s(Hurs, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
          s(SfcWind, bs = "ps", m = 1) +
-         s(Tas, bs = "ps", m = 1) +
          s(Sun, bs = "ps", m = 1) +
-         s(Hurs, bs = "ps", m = 1) +
+         s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(PM10_NA_no, bs = "ps", m = 1)),
@@ -403,13 +425,15 @@ amlss_pm10 <- amlss_avg(
 amlss_pm25 <- amlss_avg(
   list(logPM25 ~ Type + UR +
          s(log(PM25_modelled), bs = "ps", m = 1) +
-         s(Rainfall, bs = "ps", m = 1) +
+         s(Hurs, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
          s(SfcWind, bs = "ps", m = 1) +
-         s(Tas, bs = "ps", m = 1) +
          s(Sun, bs = "ps", m = 1) +
-         s(Hurs, bs = "ps", m = 1) +
+         s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(PM25_NA_no, bs = "ps", m = 1)),
@@ -427,13 +451,15 @@ amlss_sp_no2 <- amlss_avg(
   list(logNO2 ~ Type + UR +
          s(log(NO2_modelled), bs = "ps", m = 1) +
          s(Longitude, Latitude) +
-         s(Rainfall, bs = "ps", m = 1) +
-         s(SfcWind, bs = "ps", m = 1) +
          s(Hurs, bs = "ps", m = 1) +
-         s(Sun, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
+         s(SfcWind, bs = "ps", m = 1) +
+         s(Sun, bs = "ps", m = 1) +
          s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(NO2_NA_no, bs = "ps", m = 1)),
@@ -445,13 +471,15 @@ amlss_sp_pm10 <- amlss_avg(
   list(logPM10 ~ Type + UR +
          s(log(PM10_modelled), bs = "ps", m = 1) +
          s(Longitude, Latitude) +
-         s(Rainfall, bs = "ps", m = 1) +
+         s(Hurs, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
          s(SfcWind, bs = "ps", m = 1) +
-         s(Tas, bs = "ps", m = 1) +
          s(Sun, bs = "ps", m = 1) +
-         s(Hurs, bs = "ps", m = 1) +
+         s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(PM10_NA_no, bs = "ps", m = 1)),
@@ -463,13 +491,15 @@ amlss_sp_pm25 <- amlss_avg(
   list(logPM25 ~ Type + UR +
          s(log(PM25_modelled), bs = "ps", m = 1) +
          s(Longitude, Latitude) +
-         s(Rainfall, bs = "ps", m = 1) +
+         s(Hurs, bs = "ps", m = 1) +
          s(Psl, bs = "ps", m = 1) +
          s(SfcWind, bs = "ps", m = 1) +
-         s(Tas, bs = "ps", m = 1) +
          s(Sun, bs = "ps", m = 1) +
-         s(Hurs, bs = "ps", m = 1) +
+         s(Tas, bs = "ps", m = 1) +
+         s(Rainfall, bs = "ps", m = 1) +
          s(NDVI, bs = "ps", m = 1) +
+         s(PopDen, bs = "ps", m = 1) +
+         s(log(nearest_road_distance), bs = "ps", m = 1) +
          s(Temp_Trend, bs = "gp", m = 1, k = 60) +
          s(Month, bs = "cc", k = 13),
        ~ s(PM25_NA_no, bs = "ps", m = 1)),
@@ -507,6 +537,7 @@ spm_avg <- function(f, data, model = "GP") {
       coords = ~ Easting + Northing,
       nItr = 10000,
       nBurn = 2000,
+      # tol.dist = 0.05,
       scale.transform = "LOG",
       spatial.decay = decay(distribution = Gamm(2, 1), tuning = 0.06)
     )
@@ -541,17 +572,20 @@ spm_avg <- function(f, data, model = "GP") {
 ### Independent GP models with nugget effect -----------------------------------
 
 sp_gp_no2 <- spm_avg(
-  f = NO2 ~ Type + UR + log(NO2_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = NO2 ~ Type + UR + log(NO2_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_no2
 )
 
 sp_gp_pm10 <- spm_avg(
-  f = PM10 ~ Type + UR + log(PM10_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = PM10 ~ Type + UR + log(PM10_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_pm10
 )
 
 sp_gp_pm25 <- spm_avg(
-  f = PM25 ~ Type + UR + log(PM25_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = PM25 ~ Type + UR + log(PM25_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_pm25
 )
 
@@ -562,17 +596,20 @@ sp_gp_cv
 ### Autoregressive models ------------------------------------------------------
 
 sp_ar_no2 <- spm_avg(
-  f = NO2 ~ Type + UR + log(NO2_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = NO2 ~ Type + UR + log(NO2_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_no2, model = "AR"
 )
 
 sp_ar_pm10 <- spm_avg(
-  f = PM10 ~ Type + UR + log(PM10_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = PM10 ~ Type + UR + log(PM10_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_pm10, model = "AR"
 )
 
 sp_ar_pm25 <- spm_avg(
-  f = PM25 ~ Type + UR + log(PM25_modelled) + Hurs + Psl + SfcWind + Sun + Rainfall + Tas + NDVI,
+  f = PM25 ~ Type + UR + log(PM25_modelled) + Hurs + Psl + SfcWind + Sun + Tas +
+    Rainfall + NDVI + PopDen + log(nearest_road_distance),
   data = data_pm25, model = "AR"
 )
 
@@ -583,4 +620,4 @@ ar_cv
 cv_stat_models <- rbind(lm_cv, am_cv, am_sp_cv, amlss_cv, amlss_sp_cv, sp_gp_cv, sp_ar_cv)
 cv_stat_models
 
-# save.image("./Data/results - statistical models.RData")
+save.image("./Data/Results - Statistical Models.RData")

@@ -2,6 +2,7 @@
 
 library(tidyverse)
 library(leaflet)
+library(leaflegend)
 library(sf)
 library(sp)
 library(lubridate)
@@ -22,10 +23,12 @@ sites_info <- cbind(monitor_sites, sites_info)
 pal <- colorFactor(c("darkblue", "darkgreen", "darkorchid", "cadetblue", "darkorange", "firebrick"),
                    domain = unique(sites_info$type))
 leaflet(sites_info, options = leafletOptions(zoomControl = FALSE)) %>%
+  addScaleBar(position = "bottomleft", options = scaleBarOptions(maxWidth = 50)) %>%
   setView(lng = -3.6, lat = 58, zoom = 6.2) %>%
   addTiles() %>%
-  addCircleMarkers(radius = 2, color = ~pal(Type), stroke = FALSE, fillOpacity = 1) %>%
-  addLegend(position = "topright", pal = pal, values = ~Type, title = "Type of Monitoring Sites", opacity = 1)
+  addCircleMarkers(radius = 1.5, fillColor = ~pal(Type), stroke = FALSE, fillOpacity = 1) %>%
+  addLegendFactor(position = "topright", pal = pal, values = ~Type, title = "Type of Sites", opacity = 1,
+                  width = 8, height = 8, labelStyle = "font-size: 12px")
 
 data <- read.csv("./Data/Monitoring Data.csv") %>% left_join(sites_info, by = c("Site" = "Name"))
 
@@ -61,13 +64,11 @@ plot_missing <- function(pollutant_name) {
     reshape2::melt() %>%
     mutate(Site = factor(Var2, levels = rev(unique(data$Site))),
            Date = data_new$Date) %>%
-    ggplot(aes(Site, Date, fill = value)) +
+    ggplot(aes(Date, Site, fill = value)) +
     geom_raster() +
-    coord_flip() +
-    scale_y_date(expand = c(0, 0), breaks = date_breaks("1 year"),
-                 labels = date_format("%Y")) +
+    scale_x_date(expand = c(0, 0), breaks = date_breaks("1 year"), labels = date_format("%Y")) +
     scale_fill_grey(name = fill_name, labels = c("Present", "Missing")) +
-    labs(x = "Monitoring Sites", y = "Date") +
+    labs(x = "Date", y = "Monitoring Sites") +
     theme(
       axis.text.y = element_text(size = 4),
       axis.title.x = element_text(size = 16),
@@ -79,8 +80,13 @@ plot_missing <- function(pollutant_name) {
 
 # Figures 1-3 in the Supplementary Material
 plot_missing("NO2")
+ggsave(filename = "./Figure/SI_Fig1.jpeg", width = 7, height = 5, units = "in", dpi = 300)
+
 plot_missing("PM10")
+ggsave(filename = "./Figure/SI_Fig2.jpeg", width = 7, height = 5, units = "in", dpi = 300)
+
 plot_missing("PM25")
+ggsave(filename = "./Figure/SI_Fig3.jpeg", width = 7, height = 5, units = "in", dpi = 300)
 
 data$Year <- as.factor(year(data$Date))
 data$Month <- as.factor(month(data$Date))
@@ -105,7 +111,7 @@ monthly_data <- data %>%
 ggplot(data = monthly_data, aes(x = Year_Month, y = NO2)) +
   geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.5, show.legend = FALSE, colour = "cadetblue") +
   scale_x_discrete(labels = axis_label) +
-  labs(title = NULL, x = NULL, y = expression(NO[2])) +
+  labs(title = NULL, x = NULL, y = expression(NO[2]~(mu*g/m^3))) +
   stat_summary(fun = median, geom = "line", aes(group = 1), colour = "darkblue") +
   theme_bw() +
   theme(
@@ -114,10 +120,12 @@ ggplot(data = monthly_data, aes(x = Year_Month, y = NO2)) +
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
   )
+ggsave(filename = "./Figure/Fig2a.jpeg", width = 7, height = 5, units = "in", dpi = 300)
+
 ggplot(data = monthly_data, aes(x = Year_Month, y = PM10)) +
   geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.5, show.legend = FALSE, colour = "cadetblue") +
   scale_x_discrete(labels = axis_label) +
-  labs(title = NULL, x = NULL, y = expression(PM[10])) +
+  labs(title = NULL, x = NULL, y = expression(PM[10]~(mu*g/m^3))) +
   stat_summary(fun = median, geom = "line", aes(group = 1), colour = "darkblue") +
   theme_bw() +
   theme(
@@ -126,10 +134,12 @@ ggplot(data = monthly_data, aes(x = Year_Month, y = PM10)) +
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
   )
+ggsave(filename = "./Figure/Fig2b.jpeg", width = 7, height = 5, units = "in", dpi = 300)
+
 ggplot(data = monthly_data, aes(x = Year_Month, y = PM25)) +
   geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.5, show.legend = FALSE, colour = "cadetblue") +
   scale_x_discrete(labels = axis_label) +
-  labs(title = NULL, x = NULL, y = expression(PM[2.5])) +
+  labs(title = NULL, x = NULL, y = expression(PM[2.5]~(mu*g/m^3))) +
   stat_summary(fun = median, geom = "line", aes(group = 1), colour = "darkblue") +
   theme_bw() +
   theme(
@@ -138,3 +148,4 @@ ggplot(data = monthly_data, aes(x = Year_Month, y = PM25)) +
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
   )
+ggsave(filename = "./Figure/Fig2c.jpeg", width = 7, height = 5, units = "in", dpi = 300)
